@@ -10,13 +10,26 @@ import SwiftData
 
 struct ContactListView: View {
     @Environment(\.modelContext) var modelContext: ModelContext
-    @Query var contacts: [Contact] = []
-    @State var isPresentingCreationView = false
     
+    @State var isPresentingCreationView = false
+    @State var searchedText: String = ""
+    
+    @Query var contacts: [Contact] = []
+    
+    var filteredContacts: [Contact] {
+        guard !searchedText.isEmpty else {
+            return contacts
+        }
+
+        return contacts.filter {
+            $0.name.lowercased().contains(searchedText.lowercased())
+        }
+    }
+
     var body: some View {
         NavigationStack {
             List {
-                ForEach(contacts) { contact in
+                ForEach(filteredContacts) { contact in
                     NavigationLink {
                         //
                     } label: {
@@ -38,6 +51,8 @@ struct ContactListView: View {
             .sheet(isPresented: $isPresentingCreationView) {
                 ContactCreationView()
             }
+            .searchable(text: $searchedText, prompt: "Search")
+
         }
     }
     
