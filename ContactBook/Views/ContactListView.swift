@@ -18,12 +18,12 @@ struct ContactListView: View {
     
     var filteredContacts: [Contact] {
         guard !searchedText.isEmpty else {
-            return contacts
+            return contacts.sorted(by: { $0.name < $1.name})
         }
 
         return contacts.filter {
             $0.name.lowercased().contains(searchedText.lowercased())
-        }
+        }.sorted(by: { $0.name < $1.name})
     }
 
     var body: some View {
@@ -31,7 +31,7 @@ struct ContactListView: View {
             List {
                 ForEach(filteredContacts) { contact in
                     NavigationLink {
-                        //
+                        ContactDetailView(contact: contact)
                     } label: {
                         ContactRowView(contact: contact)
                     }
@@ -47,6 +47,18 @@ struct ContactListView: View {
                         Image(systemName: "plus")
                     }
                 }
+                
+                ToolbarItem(placement: .secondaryAction) {
+                    Button("Add mock contacts", systemImage: "person.crop.circle.badge.plus") {
+                        Contact.mockContact().forEach( { modelContext.insert($0) } )
+                    }
+                }
+                ToolbarItem(placement: .secondaryAction) {
+                    Button("Remove all", systemImage: "person.crop.circle.fill.badge.minus") {
+                        contacts.forEach( { modelContext.delete($0) } )
+                    }
+                }
+
             }
             .sheet(isPresented: $isPresentingCreationView) {
                 ContactCreationView()
@@ -57,12 +69,21 @@ struct ContactListView: View {
     }
     
     func deleteContacts(at offsets: IndexSet) {
-        let contactToDelete = contacts[offsets.first!]
+        let contactToDelete = filteredContacts[offsets.first!]
         modelContext.delete(contactToDelete)
     }
 }
 
 #Preview {
+    let modelContainer: ModelContainer = {
+        let modelContainer = try! ModelContainer(for: Contact.self, configurations: .init(isStoredInMemoryOnly: true))
+        Contact.mockContact().forEach {
+            modelContainer.mainContext.insert($0)
+        }
+        return modelContainer
+    }()
+    
     ContactListView()
+        .modelContainer(modelContainer)
 }
 
