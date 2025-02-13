@@ -6,10 +6,11 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContactListView: View {
-    
-    @State var contacts: [Contact] = []
+    @Environment(\.modelContext) var modelContext: ModelContext
+    @Query var contacts: [Contact] = []
     @State var isPresentingCreationView = false
     
     var body: some View {
@@ -41,14 +42,12 @@ struct ContactListView: View {
     }
     
     func deleteContacts(at offsets: IndexSet) {
-        contacts.remove(atOffsets: offsets)
-    }
-    func addContact() {
-        
+        let contactToDelete = contacts[offsets.first!]
+        modelContext.delete(contactToDelete)
     }
 }
 
 #Preview {
-    ContactListView(contacts: Contact.mockContact())
+    ContactListView()
 }
 

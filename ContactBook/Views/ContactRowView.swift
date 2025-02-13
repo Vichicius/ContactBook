@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 struct ContactRowView: View {
     
@@ -13,8 +14,18 @@ struct ContactRowView: View {
     
     var body: some View {
         HStack {
-            Image(systemName: "person.circle")
-                .resizable()
+            ZStack {
+                if let data = contact.image, let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 36, height: 36)
+                        .clipShape(Circle())
+                } else {
+                    Image(systemName: "person.circle")
+                        .resizable()
+                }
+            }
                 .frame(width: 36, height: 36)
                 .foregroundColor(.blue)
                 .padding(.trailing)
@@ -29,4 +40,8 @@ struct ContactRowView: View {
             }
         }
     }
+}
+
+#Preview {
+    ContactRowView(contact: Contact(name: "Fernando Alonso", phoneNumber: "654321987", emailAddress: "fer@gmail.com"))
 }

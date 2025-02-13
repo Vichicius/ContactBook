@@ -6,26 +6,24 @@
 //
 
 import SwiftUI
+import SwiftData
+import PhotosUI
 
 struct ContactCreationView: View {
     
     @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) var modelContext
+
     @State var contact = Contact(name: "", phoneNumber: "", emailAddress: "")
+    
+    @State var imageData: Data?
     
     var body: some View {
         NavigationStack {
             VStack() {
-                // Profile Image
-                Image(systemName: "person.circle")
-                    .resizable()
-                    .frame(width: 100, height: 100)
-                    .foregroundColor(.white)
-                    .shadow(color: .gray.opacity(0.4), radius: 5, x: 0, y: 2)
+                AvatarPicker(imageData: $imageData)
                     .padding()
-                    .background(.gray.opacity(0.4))
-                    .cornerRadius(100)
                 
-                // Form
                 Form {
                         TextField("Name", text: $contact.name)
                             .padding(.vertical, 8)
@@ -68,7 +66,13 @@ struct ContactCreationView: View {
     }
     
     func saveContact() {
-        
+        do {
+            contact.image = imageData
+            modelContext.insert(contact)
+            try modelContext.save()
+        } catch {
+            print(error)
+        }
     }
 }
 
@@ -76,3 +80,45 @@ struct ContactCreationView: View {
     ContactCreationView()
 }
 
+struct AvatarPicker: View {
+    
+    @State var selectedPhoto: PhotosPickerItem?
+    @State var selectedPhotoImage: Image?
+    
+    @Binding var imageData: Data?
+
+    var body: some View {
+        PhotosPicker(selection: $selectedPhoto,
+                     matching: .images) {
+            ZStack {
+                if let selectedPhotoImage {
+                    selectedPhotoImage
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Image(systemName: "person.circle.fill")
+                        .resizable()
+                        .foregroundColor(Color(.white))
+                }
+            }
+            .frame(width: 144, height: 144)
+            .clipShape(Circle())
+            .overlay(Circle().stroke(Color.white, lineWidth: 3))
+            .shadow(color: .gray.opacity(0.6), radius: 5, x: 0, y: 2)
+
+        }
+         .onChange(of: selectedPhoto) {
+             Task {
+                 if let image = try? await selectedPhoto?.loadTransferable(type: Image.self),
+                    let data = try? await selectedPhoto?.loadTransferable(type: Data.self){
+                     selectedPhotoImage = image
+                     imageData = data
+                 } else {
+                     print("Failed to load image.")
+                     selectedPhotoImage = nil
+                 }
+                 
+             }
+         }
+    }
+}
