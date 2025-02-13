@@ -19,20 +19,20 @@ struct ContactRowView: View {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFill()
-                        .frame(width: 36, height: 36)
+                        .frame(width: 64, height: 64)
                         .clipShape(Circle())
                 } else {
                     Image(systemName: "person.circle")
                         .resizable()
+                        .frame(width: 64, height: 64)
+                        .foregroundColor(.blue)
                 }
             }
-                .frame(width: 36, height: 36)
-                .foregroundColor(.blue)
                 .padding(.trailing)
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text(contact.name)
                     .font(.headline)
-                    .padding(.top)
                 Text(contact.emailAddress)
                     .font(.subheadline)
                 Text(contact.phoneNumber)
